@@ -1,7 +1,7 @@
 package part2dataframes
 
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.{col, column, expr}
+import org.apache.spark.sql.functions.{col, column, desc_nulls_last, expr, isnull}
 
 object ColumnsAndExpressions extends App {
 
@@ -80,5 +80,35 @@ object ColumnsAndExpressions extends App {
   // distinct values
   val allCountriesDF = carsDF.select("Origin").distinct()
   allCountriesDF.show()
+
+  /**
+    * Exercises
+    *
+    * 1. Read the movies DF and select 2 columns of your choice
+    * 2. Create another column summing up the total profit of the movies = US_Gross + Worldwide_Gross + DVD sales
+    * 3. Select all COMEDY movies with IMDB rating above 6
+    *
+    * Use as many versions as possible
+    */
+
+  val moviesDF = spark.read.json("src/main/resources/data/movies.json")
+  val moviesWithTitleAndDates = moviesDF.select(
+    col("Title"),
+    col("Release_Date"))
+  moviesWithTitleAndDates.show(10)
+
+  val moviesWithAllProfits = moviesDF
+    .withColumn("All_Profits", col("US_Gross") + col("Worldwide_Gross") + col("US_DVD_Sales"))
+    .where(
+      !isnull(col("All_Profits"))
+        and column("Major_Genre") === "Comedy"
+        and col("IMDB_Rating") > 6.0)
+    .select(
+      col("Title"),
+      col("All_Profits"),
+      col("IMDB_Rating"),
+    )
+    .orderBy(desc_nulls_last("All_Profits"))
+  moviesWithAllProfits.show()
 
 }
