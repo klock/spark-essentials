@@ -73,5 +73,41 @@ object DataFramesBasics extends App {
   import spark.implicits._
   val manualCarsDFWithImplicits = cars.toDF("Name", "MPG", "Cylinders", "Displacement", "HP", "Weight", "Acceleration", "Year", "CountryOrigin")
 
+  /**
+    * Exercise:
+    * 1) Create a manual DF describing smartphones
+    *   - make
+    *   - model
+    *   - screen dimension
+    *   - camera megapixels
+    *
+    * 2) Read another file from the data/ folder, e.g. movies.json
+    *   - print its schema
+    *   - count the number of rows, call count()
+    */
 
+  // Exercise 1
+  val smartPhonesSchema = StructType(Array(
+    StructField("make", StringType),
+    StructField("model", StringType),
+    StructField("screenDimension", DoubleType),
+    StructField("platform", StringType),
+    StructField("cameraMegaPixels", DoubleType)
+  ))
+
+  val smartPhones = Seq(
+    ("Apple", "iPhone 12 SE", 7.3, "iOS", 12.2),
+    ("Samsung", "Galaxy S20", 7.0, "Android", 9.4),
+    ("OnePlus", "9T", 7.0, "Android", 10.8),
+    ("Nokia", "3310", 2.1, "Nokia SE", 1.0)
+  )
+
+  val smartPhonesDF = spark.createDataFrame(smartPhones)
+  smartPhonesDF.show()
+  smartPhones.toDF("make", "model", "screenDimension", "platform", "cameraMegaPixels").show()
+
+  // Exercise 2
+  val moviesDF = spark.read.json("src/main/resources/data/movies.json")
+  moviesDF.printSchema()
+  println(s"Movies DF has ${moviesDF.count()} rows")
 }
