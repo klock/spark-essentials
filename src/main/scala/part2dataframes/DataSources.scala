@@ -3,6 +3,8 @@ package part2dataframes
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.sql.types._
 
+import java.util.Properties
+
 object DataSources extends App {
 
   val spark = SparkSession.builder()
@@ -104,4 +106,35 @@ object DataSources extends App {
     .option("dbtable", "public.employees")
     .load()
 
+  /**
+    * Exercise: read the movies DF, then write it as
+    * - tab-separated values file
+    * - snappy Parquet
+    * - table "public.movies" in the Postgres DB
+    */
+
+  val moviesDF = spark.read
+    .option("inferSchema", "true")
+    .json("src/main/resources/data/movies.json")
+
+  moviesDF.printSchema()
+  moviesDF.show()
+
+  moviesDF.write
+    .mode(SaveMode.Overwrite)
+    .options(Map(
+      "sep" -> "\t",
+      "header" -> "true"
+    ))
+    .csv("src/main/resources/data/movies.csv")
+
+  moviesDF.write
+    .mode(SaveMode.Overwrite)
+    .parquet("src/main/resources/data/movies.parquet")
+
+  val connectionProperties: Properties = new Properties()
+  connectionProperties.put("user", user)
+  connectionProperties.put("password", password)
+  moviesDF.write
+    .jdbc(url, "movies", connectionProperties)
 }
