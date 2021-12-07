@@ -50,7 +50,7 @@ object Aggregations extends App {
 
   val countByGenreDF = moviesDF
     .groupBy(col("Major_Genre")) // includes null
-    .count()  // select count(*) from moviesDF group by Major_Genre
+    .count() // select count(*) from moviesDF group by Major_Genre
 
   val avgRatingByGenreDF = moviesDF
     .groupBy(col("Major_Genre"))
@@ -74,32 +74,5 @@ object Aggregations extends App {
     * 4. Compute the average IMDB rating and the average US gross revenue PER DIRECTOR
     */
 
-
-  // 1
-  moviesDF
-    .select((col("US_Gross") + col("Worldwide_Gross") + col("US_DVD_Sales")).as("Total_Gross"))
-    .select(sum("Total_Gross"))
-    .show()
-
-  // 2
-  moviesDF
-    .select(countDistinct(col("Director")))
-    .show()
-
-  // 3
-  moviesDF.select(
-    mean("US_Gross"),
-    stddev("US_Gross")
-  ).show()
-
-  // 4
-  moviesDF
-    .groupBy("Director")
-    .agg(
-      avg("IMDB_Rating").as("Avg_Rating"),
-      sum("US_Gross").as("Total_US_Gross")
-    )
-    .orderBy(col("Avg_Rating").desc_nulls_last)
-    .show()
 
 }
