@@ -74,5 +74,31 @@ object Aggregations extends App {
     * 4. Compute the average IMDB rating and the average US gross revenue PER DIRECTOR
     */
 
+  // 1.
+  moviesDF
+    .select((col("US_Gross") + col("Worldwide_Gross") + col("US_DVD_Sales")).as("Total Gross"))
+    .select(sum(col("Total Gross")))
+    .show()
+
+  // 2.
+  moviesDF.select(
+    countDistinct("Director"))
+    .show()
+
+  // 3.
+  moviesDF.select(
+    mean(col("US_Gross")).as("mean US gross"),
+    stddev("US_Gross").as("Std dev US gross")
+  )
+    .show()
+
+  // 4.
+  moviesDF.groupBy(col("Director"))
+    .agg(
+      avg(col("IMDB_Rating")).as("mean_Rating"),
+      avg(col("US_Gross")).as("Avg_Gross")
+    )
+    .orderBy(col("mean_Rating").desc_nulls_last)
+    .show()
 
 }
