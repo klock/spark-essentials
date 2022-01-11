@@ -4,6 +4,7 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 
 import scala.io.Source
 import org.apache.spark.sql.functions._
+import part4sql.SparkSql.spark
 
 object RDDs extends App {
 
@@ -102,4 +103,45 @@ object RDDs extends App {
     */
 
   case class Movie(title: String, genre: String, rating: Double)
+
+  // 1.
+  val moviesDF = spark.read
+    .option("inferSchema", "true")
+    .json("src/main/resources/data/movies.json")
+
+  val moviesRDD = moviesDF
+    .select(
+      col("Title").as("title"),
+      col("Major_Genre").as("genre"),
+      col("IMDB_Rating").as("rating"))
+    .where(col("genre").isNotNull and col("rating").isNotNull)
+    .as[Movie]
+    .rdd
+
+  // 2.
+  val genresRDD = moviesRDD
+    .map(_.genre)
+    .distinct()
+//  genresRDD.toDF.show()
+
+  // 3.
+  val goodDramasRDD = moviesRDD
+    .filter(movie => movie.genre == "Drama"
+      && movie.rating > 6)
+//  goodDramasRDD.toDF.show()
+
+  // 4.
+  case class GenreAvgRating(genre: String, rating: Double)
+
+  val avgRatingByGenreRDD = moviesRDD.groupBy(_.genre).map {
+    case (genre, movies) => GenreAvgRating(genre, movies.map(_.rating).sum / movies.size)
+  }
+  avgRatingByGenreRDD.toDF.show()
+
+  // reference:
+  moviesRDD
+    .toDF
+    .groupBy(col("genre"))
+    .avg("rating")
+    .show()
 }
